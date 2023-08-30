@@ -110,7 +110,7 @@ class WalletBlankTest(BitcoinTestFramework):
         assert_equal(info["descriptors"], False)
         assert_equal(info["blank"], True)
 
-        wallet_dump_path = os.path.join(self.nodes[0].datadir, "wallet.dump")
+        wallet_dump_path = self.nodes[0].datadir_path / "wallet.dump"
         def_wallet.dumpwallet(wallet_dump_path)
 
         wallet.importwallet(wallet_dump_path)

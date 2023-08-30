@@ -32,20 +32,20 @@ class LoadblockTest(BitcoinTestFramework):
         self.generate(self.nodes[0], COINBASE_MATURITY, sync_fun=self.no_op)
 
         # Parsing the url of our node to get settings for config file
-        data_dir = self.nodes[0].datadir
+        datadir_path = self.nodes[0].datadir_path
         node_url = urllib.parse.urlparse(self.nodes[0].url)
-        cfg_file = os.path.join(data_dir, "linearize.cfg")
+        cfg_file = datadir_path / "linearize.cfg"
         bootstrap_file = os.path.join(self.options.tmpdir, "bootstrap.dat")
         genesis_block = self.nodes[0].getblockhash(0)
         blocks_dir = self.nodes[0].blocks_path
-        hash_list = tempfile.NamedTemporaryFile(dir=data_dir,
+        hash_list = tempfile.NamedTemporaryFile(dir=datadir_path,
                                                 mode='w',
                                                 delete=False,
                                                 encoding="utf-8")
 
         self.log.info("Create linearization config file")
         with open(cfg_file, "a", encoding="utf-8") as cfg:
-            cfg.write(f"datadir={data_dir}\n")
+            cfg.write(f"datadir={datadir_path}\n")
             cfg.write(f"rpcuser={node_url.username}\n")
             cfg.write(f"rpcpassword={node_url.password}\n")
             cfg.write(f"port={node_url.port}\n")

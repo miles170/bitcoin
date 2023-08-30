@@ -111,8 +111,8 @@ class WalletDumpTest(BitcoinTestFramework):
     def run_test(self):
         self.nodes[0].createwallet("dump")
 
-        wallet_unenc_dump = os.path.join(self.nodes[0].datadir, "wallet.unencrypted.dump")
-        wallet_enc_dump = os.path.join(self.nodes[0].datadir, "wallet.encrypted.dump")
+        wallet_unenc_dump = self.nodes[0].datadir_path / "wallet.unencrypted.dump"
+        wallet_enc_dump = self.nodes[0].datadir_path / "wallet.encrypted.dump"
 
         # generate 30 addresses to compare against the dump
         # - 10 legacy P2PKH
@@ -220,7 +220,7 @@ class WalletDumpTest(BitcoinTestFramework):
         w3.sendtoaddress(w3.getnewaddress(), 10)
         w3.unloadwallet()
         self.nodes[0].loadwallet("w3")
-        w3.dumpwallet(os.path.join(self.nodes[0].datadir, "w3.dump"))
+        w3.dumpwallet(self.nodes[0].datadir_path / "w3.dump")
 
 if __name__ == '__main__':
     WalletDumpTest().main()

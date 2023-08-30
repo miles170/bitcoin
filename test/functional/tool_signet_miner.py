@@ -51,7 +51,7 @@ class SignetMinerTest(BitcoinTestFramework):
         subprocess.run([
                 sys.executable,
                 signet_miner_path,
-                f'--cli={node.cli.binary} -datadir={node.cli.datadir}',
+                f'--cli={node.cli.binary} -datadir={node.cli.datadir_path}',
                 'generate',
                 f'--address={node.getnewaddress()}',
                 f'--grind-cmd={self.options.bitcoinutil} grind',

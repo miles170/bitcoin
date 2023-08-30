@@ -19,8 +19,8 @@ class BlocksdirTest(BitcoinTestFramework):
     def run_test(self):
         self.stop_node(0)
         assert os.path.isdir(os.path.join(self.nodes[0].chain_path, "blocks"))
-        assert not os.path.isdir(os.path.join(self.nodes[0].datadir, "blocks"))
-        shutil.rmtree(self.nodes[0].datadir)
+        assert not (self.nodes[0].datadir_path / "blocks").is_dir()
+        shutil.rmtree(self.nodes[0].datadir_path)
         initialize_datadir(self.options.tmpdir, 0, self.chain)
         self.log.info("Starting with nonexistent blocksdir ...")
         blocksdir_path = os.path.join(self.options.tmpdir, 'blocksdir')

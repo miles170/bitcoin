@@ -76,10 +76,10 @@ class TestNode():
 
         self.index = i
         self.p2p_conn_index = 1
-        self.datadir = datadir
-        self.bitcoinconf = os.path.join(self.datadir, "bitcoin.conf")
-        self.stdout_dir = os.path.join(self.datadir, "stdout")
-        self.stderr_dir = os.path.join(self.datadir, "stderr")
+        self.__datadir = datadir
+        self.bitcoinconf = self.datadir_path / "bitcoin.conf"
+        self.stdout_dir = self.datadir_path / "stdout"
+        self.stderr_dir = self.datadir_path / "stderr"
         self.chain = chain
         self.rpchost = rpchost
         self.rpc_timeout = timewait
@@ -88,7 +88,7 @@ class TestNode():
         self.cwd = cwd
         self.descriptors = descriptors
         if extra_conf is not None:
-            append_config(datadir, extra_conf)
+            append_config(self.datadir_path, extra_conf)
         # Most callers will just need to add extra args to the standard list below.
         # For those callers that need more flexibility, they can just set the args property directly.
         # Note that common args are set in the config file (see initialize_datadir)
@@ -99,7 +99,7 @@ class TestNode():
         # spam debug.log.
         self.args = [
             self.binary,
-            "-datadir=" + self.datadir,
+            f"-datadir={self.datadir_path}",
             "-logtimemicros",
             "-debug",
             "-debugexclude=libevent",
@@ -127,7 +127,7 @@ class TestNode():
         if self.version_is_at_least(239000):
             self.args.append("-loglevel=trace")
 
-        self.cli = TestNodeCLI(bitcoin_cli, self.datadir)
+        self.cli = TestNodeCLI(bitcoin_cli, self.datadir_path)
         self.use_cli = use_cli
         self.start_perf = start_perf
 
@@ -213,7 +213,7 @@ class TestNode():
         # Delete any existing cookie file -- if such a file exists (eg due to
         # unclean shutdown), it will get overwritten anyway by bitcoind, and
         # potentially interfere with our attempt to authenticate
-        delete_cookie_file(self.datadir, self.chain)
+        delete_cookie_file(self.datadir_path, self.chain)
 
         # add environment variable LIBC_FATAL_STDERR_=1 so that libc errors are written to stderr and not the terminal
         subp_env = dict(os.environ, LIBC_FATAL_STDERR_="1")
@@ -238,7 +238,7 @@ class TestNode():
                     'bitcoind exited with status {} during initialization'.format(self.process.returncode)))
             try:
                 rpc = get_rpc_proxy(
-                    rpc_url(self.datadir, self.index, self.chain, self.rpchost),
+                    rpc_url(self.datadir_path, self.index, self.chain, self.rpchost),
                     self.index,
                     timeout=self.rpc_timeout // 2,  # Shorter timeout to allow for one retry in case of ETIMEDOUT
                     coveragedir=self.coverage_dir,
@@ -302,7 +302,7 @@ class TestNode():
         poll_per_s = 4
         for _ in range(poll_per_s * self.rpc_timeout):
             try:
-                get_auth_cookie(self.datadir, self.chain)
+                get_auth_cookie(self.datadir_path, self.chain)
                 self.log.debug("Cookie credentials successfully retrieved")
                 return
             except ValueError:  # cookie file not found and no rpcuser or rpcpassword; bitcoind is still starting
@@ -421,7 +421,7 @@ class TestNode():
 
     @property
     def datadir_path(self) -> Path:
-        return Path(self.datadir)
+        return Path(self.__datadir)
 
     @property
     def chain_path(self) -> Path:
@@ -551,7 +551,7 @@ class TestNode():
                 "perf output won't be very useful without debug symbols compiled into bitcoind")
 
         output_path = tempfile.NamedTemporaryFile(
-            dir=self.datadir,
+            dir=self.datadir_path,
             prefix="{}.perf.data.".format(profile_name or 'test'),
             delete=False,
         ).name
@@ -748,16 +748,16 @@ def arg_to_cli(arg):
 
 class TestNodeCLI():
     """Interface to bitcoin-cli for an individual node"""
-    def __init__(self, binary, datadir):
+    def __init__(self, binary, datadir_path):
         self.options = []
         self.binary = binary
-        self.datadir = datadir
+        self.datadir_path = datadir_path
         self.input = None
         self.log = logging.getLogger('TestFramework.bitcoincli')
 
     def __call__(self, *options, input=None):
         # TestNodeCLI is callable with bitcoin-cli command-line options
-        cli = TestNodeCLI(self.binary, self.datadir)
+        cli = TestNodeCLI(self.binary, self.datadir_path)
         cli.options = [str(o) for o in options]
         cli.input = input
         return cli
@@ -778,7 +778,7 @@ class TestNodeCLI():
         """Run bitcoin-cli command. Deserializes returned string as python object."""
         pos_args = [arg_to_cli(arg) for arg in args]
         named_args = [str(key) + "=" + arg_to_cli(value) for (key, value) in kwargs.items()]
-        p_args = [self.binary, "-datadir=" + self.datadir] + self.options
+        p_args = [self.binary, f"-datadir={self.datadir_path}"] + self.options
         if named_args:
             p_args += ["-named"]
         if command is not None:

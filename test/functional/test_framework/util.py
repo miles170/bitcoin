@@ -343,8 +343,8 @@ def rpc_port(n):
     return PORT_MIN + PORT_RANGE + n + (MAX_NODES * PortSeed.n) % (PORT_RANGE - 1 - MAX_NODES)
 
 
-def rpc_url(datadir, i, chain, rpchost):
-    rpc_u, rpc_p = get_auth_cookie(datadir, chain)
+def rpc_url(datadir_path, i, chain, rpchost):
+    rpc_u, rpc_p = get_auth_cookie(datadir_path, chain)
     host = '127.0.0.1'
     port = rpc_port(i)
     if rpchost:
@@ -431,17 +431,17 @@ def get_temp_default_datadir(temp_dir: pathlib.Path) -> Tuple[dict, pathlib.Path
     return env, datadir
 
 
-def append_config(datadir, options):
-    with open(os.path.join(datadir, "bitcoin.conf"), 'a', encoding='utf8') as f:
+def append_config(datadir_path, options):
+    with open(datadir_path / "bitcoin.conf", 'a', encoding='utf8') as f:
         for option in options:
             f.write(option + "\n")
 
 
-def get_auth_cookie(datadir, chain):
+def get_auth_cookie(datadir_path, chain):
     user = None
     password = None
-    if os.path.isfile(os.path.join(datadir, "bitcoin.conf")):
-        with open(os.path.join(datadir, "bitcoin.conf"), 'r', encoding='utf8') as f:
+    if (datadir_path / "bitcoin.conf").is_file():
+        with open(datadir_path / "bitcoin.conf", 'r', encoding='utf8') as f:
             for line in f:
                 if line.startswith("rpcuser="):
                     assert user is None  # Ensure that there is only one rpcuser line
@@ -450,7 +450,7 @@ def get_auth_cookie(datadir, chain):
                     assert password is None  # Ensure that there is only one rpcpassword line
                     password = line.split("=")[1].strip("\n")
     try:
-        with open(os.path.join(datadir, chain, ".cookie"), 'r', encoding="ascii") as f:
+        with open(datadir_path / chain / ".cookie", 'r', encoding="ascii") as f:
             userpass = f.read()
             split_userpass = userpass.split(':')
             user = split_userpass[0]
@@ -463,10 +463,10 @@ def get_auth_cookie(datadir, chain):
 
 
 # If a cookie file exists in the given datadir, delete it.
-def delete_cookie_file(datadir, chain):
-    if os.path.isfile(os.path.join(datadir, chain, ".cookie")):
+def delete_cookie_file(datadir_path, chain):
+    if (datadir_path / chain / ".cookie").is_file():
         logger.debug("Deleting leftover cookie file")
-        os.remove(os.path.join(datadir, chain, ".cookie"))
+        (datadir_path / chain / ".cookie").unlink()
 
 
 def softfork_active(node, key):

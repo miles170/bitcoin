@@ -115,7 +115,7 @@ class WalletBackupTest(BitcoinTestFramework):
 
     def restore_invalid_wallet(self):
         node = self.nodes[3]
-        invalid_wallet_file = os.path.join(self.nodes[0].datadir, 'invalid_wallet_file.bak')
+        invalid_wallet_file = self.nodes[0].datadir_path / 'invalid_wallet_file.bak'
         open(invalid_wallet_file, 'a', encoding="utf8").write('invald wallet')
         wallet_name = "res0"
         not_created_wallet_file = os.path.join(node.wallets_path, wallet_name)
@@ -125,7 +125,7 @@ class WalletBackupTest(BitcoinTestFramework):
 
     def restore_nonexistent_wallet(self):
         node = self.nodes[3]
-        nonexistent_wallet_file = os.path.join(self.nodes[0].datadir, 'nonexistent_wallet.bak')
+        nonexistent_wallet_file = self.nodes[0].datadir_path / 'nonexistent_wallet.bak'
         wallet_name = "res0"
         assert_raises_rpc_error(-8, "Backup file does not exist", node.restorewallet, wallet_name, nonexistent_wallet_file)
         not_created_wallet_file = os.path.join(node.wallets_path, wallet_name)
@@ -133,9 +133,9 @@ class WalletBackupTest(BitcoinTestFramework):
 
     def restore_wallet_existent_name(self):
         node = self.nodes[3]
-        backup_file = os.path.join(self.nodes[0].datadir, 'wallet.bak')
+        backup_file = self.nodes[0].datadir_path / 'wallet.bak'
         wallet_name = "res0"
-        wallet_file = os.path.join(node.wallets_path, wallet_name)
+        wallet_file = node.wallets_path / wallet_name
         error_message = "Failed to create database path '{}'. Database already exists.".format(wallet_file)
         assert_raises_rpc_error(-36, error_message, node.restorewallet, wallet_name, backup_file)
         assert os.path.exists(wallet_file)
@@ -159,14 +159,14 @@ class WalletBackupTest(BitcoinTestFramework):
 
         self.log.info("Backing up")
 
-        self.nodes[0].backupwallet(os.path.join(self.nodes[0].datadir, 'wallet.bak'))
-        self.nodes[1].backupwallet(os.path.join(self.nodes[1].datadir, 'wallet.bak'))
-        self.nodes[2].backupwallet(os.path.join(self.nodes[2].datadir, 'wallet.bak'))
+        self.nodes[0].backupwallet(self.nodes[0].datadir_path / 'wallet.bak')
+        self.nodes[1].backupwallet(self.nodes[1].datadir_path / 'wallet.bak')
+        self.nodes[2].backupwallet(self.nodes[2].datadir_path / 'wallet.bak')
 
         if not self.options.descriptors:
-            self.nodes[0].dumpwallet(os.path.join(self.nodes[0].datadir, 'wallet.dump'))
-            self.nodes[1].dumpwallet(os.path.join(self.nodes[1].datadir, 'wallet.dump'))
-            self.nodes[2].dumpwallet(os.path.join(self.nodes[2].datadir, 'wallet.dump'))
+            self.nodes[0].dumpwallet(self.nodes[0].datadir_path / 'wallet.dump')
+            self.nodes[1].dumpwallet(self.nodes[1].datadir_path / 'wallet.dump')
+            self.nodes[2].dumpwallet(self.nodes[2].datadir_path / 'wallet.dump')
 
         self.log.info("More transactions")
         for _ in range(5):
@@ -193,9 +193,9 @@ class WalletBackupTest(BitcoinTestFramework):
         self.restore_invalid_wallet()
         self.restore_nonexistent_wallet()
 
-        backup_file_0 = os.path.join(self.nodes[0].datadir, 'wallet.bak')
-        backup_file_1 = os.path.join(self.nodes[1].datadir, 'wallet.bak')
-        backup_file_2 = os.path.join(self.nodes[2].datadir, 'wallet.bak')
+        backup_file_0 = self.nodes[0].datadir_path / 'wallet.bak'
+        backup_file_1 = self.nodes[1].datadir_path / 'wallet.bak'
+        backup_file_2 = self.nodes[2].datadir_path / 'wallet.bak'
 
         self.nodes[3].restorewallet("res0", backup_file_0)
         self.nodes[3].restorewallet("res1", backup_file_1)
@@ -234,9 +234,9 @@ class WalletBackupTest(BitcoinTestFramework):
             assert_equal(self.nodes[1].getbalance(), 0)
             assert_equal(self.nodes[2].getbalance(), 0)
 
-            self.nodes[0].importwallet(os.path.join(self.nodes[0].datadir, 'wallet.dump'))
-            self.nodes[1].importwallet(os.path.join(self.nodes[1].datadir, 'wallet.dump'))
-            self.nodes[2].importwallet(os.path.join(self.nodes[2].datadir, 'wallet.dump'))
+            self.nodes[0].importwallet(self.nodes[0].datadir_path / 'wallet.dump')
+            self.nodes[1].importwallet(self.nodes[1].datadir_path / 'wallet.dump')
+            self.nodes[2].importwallet(self.nodes[2].datadir_path / 'wallet.dump')
 
             self.sync_blocks()
 

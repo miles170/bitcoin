@@ -34,7 +34,7 @@ class KeypoolRestoreTest(BitcoinTestFramework):
 
     def run_test(self):
         wallet_path = os.path.join(self.nodes[1].wallets_path, self.default_wallet_name, self.wallet_data_filename)
-        wallet_backup_path = os.path.join(self.nodes[1].datadir, "wallet.bak")
+        wallet_backup_path = self.nodes[1].datadir_path / "wallet.bak"
         self.generate(self.nodes[0], COINBASE_MATURITY + 1)
 
         self.log.info("Make backup of wallet")
